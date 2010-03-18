@@ -25,6 +25,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ASIHTTPRequest.h"
 
 @protocol EGOImageLoadConnectionDelegate;
 
@@ -32,10 +33,11 @@
 @private
 	NSURL* _imageURL;
 	NSURLResponse* _response;
-	NSMutableData* _responseData;
-	NSURLConnection* _connection;
+
 	NSTimeInterval _timeoutInterval;
 	
+    ASIHTTPRequest *_request;
+    
 	id<EGOImageLoadConnectionDelegate> _delegate;
 }
 

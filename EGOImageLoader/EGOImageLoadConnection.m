@@ -34,7 +34,6 @@
 	if((self = [super init])) {
 		_imageURL = [aURL retain];
 		self.delegate = delegate;
-		_responseData = [[NSMutableData alloc] init];
 		self.timeoutInterval = 30;
 	}
 	
@@ -42,53 +41,48 @@
 }
 
 - (void)start {
-	NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:self.imageURL
-																cachePolicy:NSURLRequestReturnCacheDataElseLoad
-															timeoutInterval:self.timeoutInterval];
-	[request setValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];  
-	_connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
-	[request release];
+    NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
+    _request = [[ASIHTTPRequest requestWithURL:self.imageURL] retain];
+    _request.timeOutSeconds = self.timeoutInterval;
+    
+    _request.didFinishSelector = @selector(requestDidFinish:);
+    _request.didFailSelector = @selector(requestDidFail:);
+    _request.delegate = self;
+    _request.allowCompressedResponse = YES;
+    //[request setValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];  
+    // TODO: check cache policy
+    [_request startSynchronous];
+    [p release];
 }
 
 - (void)cancel {
-	[_connection cancel];	
+	[_request cancel];	
 }
 
 - (NSData*)responseData {
-	return _responseData;
+	return [_request responseData];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-	if(connection != _connection) return;
-	[_responseData appendData:data];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-	if(connection != _connection) return;
-	self.response = response;
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-	if(connection != _connection) return;
-
+- (void)requestDidFinish:(ASIHTTPRequest *)request {
+    if (request != _request) return;
+    
 	if([self.delegate respondsToSelector:@selector(imageLoadConnectionDidFinishLoading:)]) {
 		[self.delegate imageLoadConnectionDidFinishLoading:self];
 	}
 }
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-	if(connection != _connection) return;
-
+- (void)requestDidFail:(ASIHTTPRequest *)request {
+    if (request != _request) return;
+    
 	if([self.delegate respondsToSelector:@selector(imageLoadConnection:didFailWithError:)]) {
-		[self.delegate imageLoadConnection:self didFailWithError:error];
-	}
+		[self.delegate imageLoadConnection:self didFailWithError:_request.error];
+	}    
 }
-
 
 - (void)dealloc {
 	self.response = nil;
 	self.delegate = nil;
-	[_connection release];
+	[_request release];
 	[_imageURL release];
 	[super dealloc];
 }

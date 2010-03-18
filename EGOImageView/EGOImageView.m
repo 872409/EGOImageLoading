@@ -62,7 +62,11 @@
 	UIImage* anImage = [[EGOImageLoader sharedImageLoader] imageForURL:aURL shouldLoadWithObserver:self];
 	
 	if(anImage) {
+        // OA Hax, need to apply a mask, so notify shiz here.
 		self.image = anImage;
+        if([self.delegate respondsToSelector:@selector(imageViewLoadedImage:)]) {
+            [self.delegate imageViewLoadedImage:self];
+        }
 	} else {
 		self.image = self.placeholderImage;
 	}

@@ -30,7 +30,7 @@
 @interface EGOImageLoader : NSObject/*<NSURLConnectionDelegate>*/ {
 @private
 	NSDictionary* _currentConnections;
-	NSMutableDictionary* currentConnections;
+	NSMutableDictionary* somePool;
 	
 	NSLock* connectionsLock;
 }
