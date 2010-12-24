@@ -109,7 +109,7 @@ inline static NSString* keyForURL(NSURL* url) {
 	[somePool setObject:connection forKey:aURL];
 	self.currentConnections = [[somePool copy] autorelease];
 	[connectionsLock unlock];
-    [connection performSelectorInBackground:@selector(start) withObject:nil];
+  [connection performSelector:@selector(start) withObject:nil afterDelay:0.01];
 	[connection release];
 }
 
