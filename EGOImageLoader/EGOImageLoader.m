@@ -109,7 +109,7 @@ inline static NSString* keyForURL(NSURL* url) {
 	[somePool setObject:connection forKey:aURL];
 	self.currentConnections = [[somePool copy] autorelease];
 	[connectionsLock unlock];
-  [connection performSelector:@selector(start) withObject:nil afterDelay:0.01];
+    [connection performSelectorInBackground:@selector(start) withObject:nil];
 	[connection release];
 }
 
@@ -143,6 +143,7 @@ inline static NSString* keyForURL(NSURL* url) {
 #pragma mark URL Connection delegate methods
 
 - (void)imageLoadConnectionDidFinishLoading:(EGOImageLoadConnection *)connection {
+  [[connection retain] autorelease]; // connection can get cleaned up in the changes to currentConnections. preventing that.
 	UIImage* anImage = [UIImage imageWithData:connection.responseData];
 	
 	if(!anImage) {
@@ -169,7 +170,7 @@ inline static NSString* keyForURL(NSURL* url) {
 }
 
 - (void)imageLoadConnection:(EGOImageLoadConnection *)connection didFailWithError:(NSError *)error {
-    TRACE();
+  [[connection retain] autorelease]; // connection can get cleaned up in the changes to currentConnections. preventing that.
 	[somePool removeObjectForKey:connection.imageURL];
 	self.currentConnections = [[somePool copy] autorelease];
 	
